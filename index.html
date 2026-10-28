@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Syd's Footy Calendar</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: sticky toggle bar, single column of week blocks or club blocks; colour chip per club */
+:root{
+ --bg:#f3f6f2;--surface:#ffffff;--fg:#17201a;--muted:#5c6b61;--line:#d8e0d9;--accent:#1f7a3f;--warn:#b4570b;--warnbg:#fff1e3;
+ --c-EFNL:#3346a8;--c-ER:#0b8a8a;--c-SB:#c1272d;--c-OEFN:#5f8f1c;--c-OFC:#e0660f;--c-PC:#7a4fb5;
+ --display:"Barlow Condensed","Arial Narrow",sans-serif;--body:"Barlow",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111813;--surface:#19221c;--fg:#e8efe9;--muted:#9aab9f;--line:#2b372f;--accent:#5fc483;--warn:#f0a35a;--warnbg:#33240f;--c-EFNL:#8a9cff;--c-ER:#3fc9c9;--c-SB:#ff6b70;--c-OEFN:#a6d65c;--c-OFC:#ff9a4d;--c-PC:#c39bff;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#111813;--surface:#19221c;--fg:#e8efe9;--muted:#9aab9f;--line:#2b372f;--accent:#5fc483;--warn:#f0a35a;--warnbg:#33240f;--c-EFNL:#8a9cff;--c-ER:#3fc9c9;--c-SB:#ff6b70;--c-OEFN:#a6d65c;--c-OFC:#ff9a4d;--c-PC:#c39bff;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+h1{font-family:var(--display);font-size:2.3rem;line-height:1;margin:0;letter-spacing:.01em;text-transform:uppercase;text-wrap:balance}
+.sub{color:var(--muted);margin:6px 0 0}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px}
+.seg button{flex:1;font:600 15px var(--body);border:0;background:none;color:var(--muted);padding:8px;border-radius:7px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;font:500 13px var(--body);border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:99px;padding:4px 10px;cursor:pointer}
+.chip[aria-pressed="false"]{opacity:.45}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+label.past{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.month{font-family:var(--display);font-size:1.7rem;text-transform:uppercase;margin:26px 0 4px;color:var(--accent)}
+.week{font:600 12px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
+.day{display:grid;grid-template-columns:52px 1fr;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.dl{text-align:center;line-height:1}
+.dl b{display:block;font-family:var(--display);font-size:1.7rem}
+.dl span{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.evs{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ev{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--cc);border-radius:8px;padding:8px 10px;min-width:0}
+.ev.flag{border-left-style:dashed}
+.top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.club{font:600 12px var(--body);color:var(--cc);text-transform:uppercase;letter-spacing:.05em}
+.time{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.time.tbc{color:var(--muted);font-weight:500}
+.t{font-weight:600}
+.v,.n{font-size:13.5px;color:var(--muted)}
+.clash{margin-top:6px;font-size:13px;background:var(--warnbg);color:var(--warn);border-radius:6px;padding:4px 8px;font-weight:600}
+.past-ev{opacity:.45}
+.cb{margin-top:22px}
+.cb h2{font-family:var(--display);font-size:1.6rem;text-transform:uppercase;margin:0;color:var(--cc);display:flex;align-items:center;gap:8px}
+.cb .info{font-size:13.5px;color:var(--muted);margin:4px 0 8px}
+.row{display:grid;grid-template-columns:92px 1fr;gap:10px;padding:7px 0;border-top:1px solid var(--line)}
+.row .d{font-weight:600;font-variant-numeric:tabular-nums}
+.key{margin-top:30px;font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.ev{transition:opacity .2s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <h1>Syd's Footy Calendar</h1>
+ <p class="sub">Nov 2026 to Feb 2027 · six programs · all times Melbourne</p>
+ <div class="bar">
+  <div class="seg" role="group" aria-label="View">
+   <button id="v-month" aria-pressed="true">By month</button>
+   <button id="v-club" aria-pressed="false">By club</button>
+  </div>
+  <div class="chips" id="chips"></div>
+  <label class="past"><input type="checkbox" id="showpast"> Show past sessions</label>
+ </div>
+ <div id="out"></div>
+ <p class="key">Orange flags mark days where two programs fall on the same day. Dashed edge means the time or venue is still TBC. Venues and times can change; check club emails.</p>
+</div>
+<script>
+const EV=[{"club": "SB", "date": "2026-10-27", "start": "19:00", "end": "20:00", "title": "Trial training (HAD Football Academy)", "venue": "Narre Warren East Recreation Reserve", "note": "Arrive 6:45pm to warm up", "kind": "session", "id": 0}, {"club": "SB", "date": "2026-10-29", "start": "18:00", "end": "19:30", "title": "Trial training (team coaches)", "venue": "Narre Warren East Recreation Reserve", "note": "", "kind": "session", "id": 1}, {"club": "SB", "date": "2026-11-05", "start": "18:00", "end": "19:30", "title": "Trial training (team coaches)", "venue": "Narre Warren East Recreation Reserve", "note": "", "kind": "session", "id": 2}, {"club": "PC", "date": "2026-11-08", "start": "10:00", "end": "11:00", "title": "Footy coaching session", "venue": "Righetti Oval, Elizabeth St, Kooyong", "note": "", "kind": "session", "id": 3}, {"club": "OFC", "date": "2026-11-09", "start": "18:30", "end": "19:30", "title": "U15 boys come-and-try training", "venue": "Olinda Green Sports Oval (Top Oval), 75-77 Olinda-Monbulk Rd, Olinda", "note": "BBQ and refreshments after", "kind": "session", "id": 4}, {"club": "SB", "date": "2026-11-10", "start": "19:00", "end": "20:00", "title": "Trial training (HAD Football Academy)", "venue": "Narre Warren East Recreation Reserve", "note": "Arrive 6:45pm to warm up", "kind": "session", "id": 5}, {"club": "SB", "date": "2026-11-12", "start": "18:00", "end": "19:30", "title": "Trial training (team coaches)", "venue": "Narre Warren East Recreation Reserve", "note": "", "kind": "session", "id": 6}, {"club": "OEFN", "date": "2026-11-14", "start": null, "end": null, "title": "Registration and $60 payment closes", "venue": "", "note": "Must be registered and paid via PlayHQ to trial. No exceptions.", "kind": "deadline", "id": 7}, {"club": "OEFN", "date": "2026-11-15", "start": "11:15", "end": "12:30", "title": "Interleague trial, week 1", "venue": "Kilsyth Recreation Reserve (OEFN office)", "note": "", "kind": "session", "id": 8}, {"club": "OFC", "date": "2026-11-16", "start": "18:30", "end": "19:30", "title": "U15 boys come-and-try training", "venue": "Olinda Green Sports Oval (Top Oval), 75-77 Olinda-Monbulk Rd, Olinda", "note": "BBQ and refreshments after", "kind": "session", "id": 9}, {"club": "SB", "date": "2026-11-17", "start": "19:00", "end": "20:00", "title": "Trial training (HAD Football Academy)", "venue": "Narre Warren East Recreation Reserve", "note": "Arrive 6:45pm to warm up", "kind": "session", "id": 10}, {"club": "ER", "date": "2026-11-18", "start": "18:30", "end": "20:00", "title": "U16 preseason training", "venue": "Kilsyth Recreation Reserve", "note": "First session", "kind": "session", "id": 11}, {"club": "SB", "date": "2026-11-19", "start": "18:00", "end": "19:30", "title": "Trial training (team coaches)", "venue": "Narre Warren East Recreation Reserve", "note": "", "kind": "session", "id": 12}, {"club": "OEFN", "date": "2026-11-22", "start": "11:15", "end": "12:30", "title": "Interleague trial, week 2", "venue": "Kilsyth Recreation Reserve (OEFN office)", "note": "", "kind": "session", "id": 13}, {"club": "ER", "date": "2026-11-23", "start": "18:30", "end": "20:00", "title": "U16 preseason training", "venue": "Kilsyth Recreation Reserve", "note": "", "kind": "session", "id": 14}, {"club": "SB", "date": "2026-11-24", "start": "19:00", "end": "20:00", "title": "Trial training (HAD Football Academy)", "venue": "Narre Warren East Recreation Reserve", "note": "Arrive 6:45pm to warm up", "kind": "session", "id": 15}, {"club": "EFNL", "date": "2026-11-24", "start": "19:00", "end": "20:30", "title": "Parent information night", "venue": "The Knox School, Wantirna South", "note": "Starts 7:00pm (U14 and U15)", "kind": "session", "id": 16}, {"club": "ER", "date": "2026-11-25", "start": "18:30", "end": "20:00", "title": "U16 preseason training", "venue": "Kilsyth Recreation Reserve", "note": "", "kind": "session", "id": 17}, {"club": "SB", "date": "2026-11-26", "start": "18:00", "end": "19:30", "title": "Trial training (team coaches)", "venue": "Narre Warren East Recreation Reserve", "note": "", "kind": "session", "id": 18}, {"club": "OEFN", "date": "2026-11-29", "start": "11:15", "end": "12:30", "title": "Interleague trial, week 3", "venue": "Kilsyth Recreation Reserve (OEFN office)", "note": "", "kind": "session", "id": 19}, {"club": "EFNL", "date": "2026-11-29", "start": "13:00", "end": "14:30", "title": "Development training", "venue": "Holm Park, Beaconsfield", "note": "", "kind": "session", "id": 20}, {"club": "SB", "date": "2026-11-30", "start": null, "end": null, "title": "Squad offers expected by end of November", "venue": "", "note": "", "kind": "milestone", "id": 21}, {"club": "ER", "date": "2026-11-30", "start": "18:30", "end": "20:00", "title": "U16 preseason training", "venue": "Kilsyth Recreation Reserve", "note": "", "kind": "session", "id": 22}, {"club": "ER", "date": "2026-12-02", "start": "18:30", "end": "20:00", "title": "U16 preseason training", "venue": "Kilsyth Recreation Reserve", "note": "", "kind": "session", "id": 23}, {"club": "OEFN", "date": "2026-12-06", "start": "11:45", "end": "13:00", "title": "Interleague trial, week 4", "venue": "Kilsyth Recreation Reserve (OEFN office)", "note": "Parent info session and BBQ 11:45am, trial 12:00 to 1:00pm", "kind": "session", "id": 24}, {"club": "EFNL", "date": "2026-12-06", "start": "13:00", "end": "17:00", "title": "Practice match (intra-club)", "venue": "Kennedy Community Centre, Dingley", "note": "Game 1 at 1pm, Game 2 at 3pm", "kind": "session", "id": 25}, {"club": "ER", "date": "2026-12-07", "start": "18:30", "end": "20:00", "title": "U16 preseason training", "venue": "Kilsyth Recreation Reserve", "note": "", "kind": "session", "id": 26}, {"club": "ER", "date": "2026-12-09", "start": "18:30", "end": "20:00", "title": "U16 preseason training", "venue": "Kilsyth Recreation Reserve", "note": "", "kind": "session", "id": 27}, {"club": "ER", "date": "2026-12-14", "start": "18:30", "end": "20:00", "title": "U16 preseason training", "venue": "Kilsyth Recreation Reserve", "note": "", "kind": "session", "id": 28}, {"club": "EFNL", "date": "2027-01-27", "start": "15:00", "end": "18:00", "title": "High performance testing day", "venue": "Venue TBC", "note": "", "kind": "session", "id": 29}, {"club": "ER", "date": "2027-02-01", "start": null, "end": null, "title": "U16 preseason training", "venue": "Kilsyth Recreation Reserve", "note": "Monday time TBC", "kind": "session", "id": 30}, {"club": "OEFN", "date": "2027-02-03", "start": null, "end": null, "title": "Interleague trials resume", "venue": "Kilsyth Recreation Reserve", "note": "Time TBC", "kind": "session", "id": 31}, {"club": "ER", "date": "2027-02-03", "start": "17:15", "end": "18:30", "title": "U16 preseason training", "venue": "Kilsyth Recreation Reserve", "note": "", "kind": "session", "id": 32}, {"club": "EFNL", "date": "2027-02-07", "start": "10:30", "end": "12:00", "title": "Development training", "venue": "Kennedy Community Centre, Dingley", "note": "", "kind": "session", "id": 33}, {"club": "ER", "date": "2027-02-08", "start": null, "end": null, "title": "U16 preseason training", "venue": "Kilsyth Recreation Reserve", "note": "Monday time TBC", "kind": "session", "id": 34}, {"club": "ER", "date": "2027-02-10", "start": "17:15", "end": "18:30", "title": "U16 preseason training", "venue": "Kilsyth Recreation Reserve", "note": "", "kind": "session", "id": 35}, {"club": "ER", "date": "2027-02-12", "start": null, "end": null, "title": "Final squad announced", "venue": "", "note": "", "kind": "milestone", "id": 36}, {"club": "ER", "date": "2027-02-15", "start": null, "end": null, "title": "In-season squad starts (to 30 Sep)", "venue": "", "note": "", "kind": "milestone", "id": 37}, {"club": "EFNL", "date": "2027-02-21", "start": "10:30", "end": "13:00", "title": "Development training", "venue": "Kennedy Community Centre, Dingley", "note": "", "kind": "session", "id": 38}, {"club": "EFNL", "date": "2027-02-28", "start": "09:00", "end": "13:00", "title": "Practice match (intra-club)", "venue": "Kennedy Community Centre, Dingley", "note": "Game 1 at 9am, Game 2 at 11am", "kind": "session", "id": 39}];
+const CLUB={EFNL:{n:"EFNL Junior Development",i:"U15 Boys program. Includes training top, 3 trainings, 2 practice matches, testing day."},
+ER:{n:"Eastern Ranges U16",i:"Preseason Mon and Wed at Kilsyth Rec Reserve. Pre-Christmas 6:30 to 8pm. Post-Christmas (28 Jan to 11 Feb) Wed 5:15 to 6:30pm, Mon TBC."},
+SB:{n:"South Belgrave U15",i:"Trials Tue and Thu to end of Nov at Narre Warren East Rec Reserve. No session Tue 3 Nov (Cup Day). Tell Team Manager Jackie Pike about absences."},
+OEFN:{n:"OEFN Interleague U15",i:"Trials at Kilsyth Rec Reserve. Register and pay $60 on PlayHQ by Sat 14 Nov: playhq.com/afl/register/4ae440"},
+OFC:{n:"Olinda Ferny Creek U15",i:"Expression of interest sessions for a 2027 EFNL U15 team."},
+PC:{n:"Phillips Coaching",i:"Private footy coaching."}};
+const TODAY="2026-10-28";
+const MON=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const MS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const DW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const pd=s=>{const[a,b,c]=s.split("-").map(Number);return new Date(a,b-1,c)};
+const t12=t=>{let[h,m]=t.split(":").map(Number);const ap=h>=12?"pm":"am";h=h%12||12;return h+(m?":"+String(m).padStart(2,"0"):"")+ap};
+const mins=t=>{const[h,m]=t.split(":").map(Number);return h*60+m};
+const timeStr=e=>e.kind!=="session"?(e.kind==="deadline"?"Deadline":"Milestone"):e.start?t12(e.start)+" to "+t12(e.end):"Time TBC";
+// clash detection
+const clash={};
+const sess=EV.filter(e=>e.kind==="session");
+for(const a of sess)for(const b of sess){if(a.id>=b.id||a.date!==b.date||a.club===b.club)continue;
+ let msg;
+ if(a.start&&b.start){const gap=Math.max(mins(b.start)-mins(a.end),mins(a.start)-mins(b.end));msg=gap<0?"Clashes with":gap<60?"Tight turnaround with":"Same day as";}
+ else msg="Same day as (time TBC)";
+ (clash[a.id]=clash[a.id]||[]).push(msg+" "+CLUB[b.club].n);(clash[b.id]=clash[b.id]||[]).push(msg+" "+CLUB[a.club].n);}
+let view="month",on=new Set(Object.keys(CLUB)),past=false;
+try{const s=JSON.parse(localStorage.getItem("syd-footy")||"{}");if(s.view)view=s.view;if(s.on)on=new Set(s.on)}catch(e){}
+const save=()=>{try{localStorage.setItem("syd-footy",JSON.stringify({view,on:[...on]}))}catch(e){}};
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function card(e,showClub=true){
+ const cl=clash[e.id];const flag=!e.start&&e.kind==="session"||/TBC/.test(e.venue);
+ return `<div class="ev${flag?" flag":""}${e.date<TODAY?" past-ev":""}" style="--cc:var(--c-${e.club})">
+ <div class="top">${showClub?`<span class="club">${CLUB[e.club].n}</span>`:""}<span class="time${e.start?"":" tbc"}">${timeStr(e)}</span></div>
+ <div class="t">${esc(e.title)}</div>${e.venue?`<div class="v">${esc(e.venue)}</div>`:""}${e.note?`<div class="n">${esc(e.note)}</div>`:""}
+ ${cl?cl.map(c=>`<div class="clash">⚠ ${esc(c)}</div>`).join(""):""}</div>`}
+function monday(d){const x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));return x}
+function render(){
+ document.getElementById("v-month").setAttribute("aria-pressed",view==="month");
+ document.getElementById("v-club").setAttribute("aria-pressed",view==="club");
+ document.getElementById("chips").innerHTML=Object.keys(CLUB).map(k=>`<button class="chip" data-k="${k}" aria-pressed="${on.has(k)}"><span class="dot" style="background:var(--c-${k})"></span>${CLUB[k].n}</button>`).join("");
+ const list=EV.filter(e=>on.has(e.club)&&(past||e.date>=TODAY));
+ let h="";
+ if(view==="month"){
+  let cm="",cw="",cd="";
+  for(const e of list){const d=pd(e.date);const mk=d.getFullYear()+"-"+d.getMonth();
+   if(mk!==cm){if(cd)h+="</div></div>";cd="";cw="";h+=`<div class="month">${MON[d.getMonth()]} ${d.getFullYear()}</div>`;cm=mk}
+   const m=monday(d);const wk=m.toDateString();
+   if(wk!==cw){if(cd)h+="</div></div>";cd="";h+=`<div class="week">Week of Mon ${m.getDate()} ${MS[m.getMonth()]}</div>`;cw=wk}
+   if(e.date!==cd){if(cd)h+="</div></div>";h+=`<div class="day"><div class="dl"><b>${d.getDate()}</b><span>${DW[d.getDay()]}</span></div><div class="evs">`;cd=e.date}
+   h+=card(e)}
+  if(cd)h+="</div></div>";
+ }else{
+  for(const k of Object.keys(CLUB)){if(!on.has(k))continue;const es=list.filter(e=>e.club===k);
+   h+=`<section class="cb" style="--cc:var(--c-${k})"><h2><span class="dot" style="background:var(--cc)"></span>${CLUB[k].n}</h2><p class="info">${esc(CLUB[k].i)}</p>`;
+   for(const e of es){const d=pd(e.date);h+=`<div class="row"><div class="d">${DW[d.getDay()]} ${d.getDate()} ${MS[d.getMonth()]}${d.getFullYear()===2027?" ’27":""}</div>${card(e,false)}</div>`}
+   if(!es.length)h+=`<p class="info">No upcoming sessions.</p>`;h+="</section>"}
+ }
+ document.getElementById("out").innerHTML=h||"<p class='sub'>Pick at least one program above.</p>";
+}
+document.getElementById("v-month").onclick=()=>{view="month";save();render()};
+document.getElementById("v-club").onclick=()=>{view="club";save();render()};
+document.getElementById("chips").onclick=ev=>{const b=ev.target.closest(".chip");if(!b)return;const k=b.dataset.k;on.has(k)?on.delete(k):on.add(k);save();render()};
+document.getElementById("showpast").onchange=ev=>{past=ev.target.checked;render()};
+render();
+</script>
+
+</body>
+</html>
